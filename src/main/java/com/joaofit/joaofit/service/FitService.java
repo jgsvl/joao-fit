@@ -2,7 +2,6 @@ package com.joaofit.joaofit.service;
 
 import com.garmin.fit.Decode;
 import com.garmin.fit.MesgBroadcaster;
-import com.garmin.fit.RecordMesg;
 import com.garmin.fit.RecordMesgListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +16,7 @@ public class FitService {
 
     public List<String> lerArquivoFit(MultipartFile file) {
         List<String> registros = new ArrayList<>();
-        InputStream is = null;
+        InputStream is;
         try {
             is = file.getInputStream();
         } catch (IOException e) {
@@ -26,9 +25,7 @@ public class FitService {
 
         // Decode verifica a integridade do arquivo .fit
         Decode decoder = new Decode();
-
-        MesgBroadcaster mesgBroadcaster = new MesgBroadcaster();
-
+        MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
         // Listener para mensagens de "Record" (cada ponto de GPS/batimento)
         mesgBroadcaster.addListener((RecordMesgListener) mesg -> {
             String dado = String.format("Tempo: %s | Lat: %f | Long: %f | Alt: %.2fm",
