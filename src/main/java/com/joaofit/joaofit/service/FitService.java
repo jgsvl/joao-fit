@@ -28,11 +28,13 @@ public class FitService {
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
         // Listener para mensagens de "Record" (cada ponto de GPS/batimento)
         mesgBroadcaster.addListener((RecordMesgListener) mesg -> {
-            String dado = String.format("Tempo: %s | Lat: %f | Long: %f | Alt: %.2fm",
+            String dado = String.format("Tempo: %s | Lat: %f | Long: %f | Alt: %.2fm | Freq Cardiaca: %s | Cadência: %s",
                     mesg.getTimestamp(),
                     mesg.getPositionLat() != null ? mesg.getPositionLat() * (180.0 / Math.pow(2, 31)) : 0,
                     mesg.getPositionLong() != null ? mesg.getPositionLong() * (180.0 / Math.pow(2, 31)) : 0,
-                    mesg.getAltitude());
+                    mesg.getAltitude(),
+                    mesg.getHeartRate(),
+                    mesg.getCadence());
             registros.add(dado);
         });
 
