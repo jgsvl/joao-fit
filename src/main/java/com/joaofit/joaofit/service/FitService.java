@@ -3,6 +3,8 @@ package com.joaofit.joaofit.service;
 import com.garmin.fit.Decode;
 import com.garmin.fit.MesgBroadcaster;
 import com.garmin.fit.RecordMesgListener;
+import com.garmin.fit.SessionMesgListener;
+import com.joaofit.joaofit.dto.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +15,36 @@ import java.util.List;
 
 @Service
 public class FitService {
+
+    public List<Session> getSessions(MultipartFile file) {
+        InputStream is;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Session> sessions = new ArrayList<>();
+        // Decode verifica a integridade do arquivo .fit
+        Decode decoder = new Decode();
+        MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
+        // Listener para mensagens de "Session"
+        mesgBroadcaster.addListener((SessionMesgListener) mesg -> {
+                    Session session = new Session(
+                    mesg.getStartTime(),
+                    mesg.getSport(),
+                    mesg.getSubSport(),
+                    mesg.getTotalElapsedTime(),
+                    mesg.getAvgSpeed(),
+                    mesg.getAvgHeartRate(),
+                    mesg.getAvgCadence());
+                    sessions.add(session);
+        });
+
+        mesgBroadcaster.run(is);
+        return sessions;
+
+    }
 
     public List<String> lerArquivoFit(MultipartFile file) {
         List<String> registros = new ArrayList<>();

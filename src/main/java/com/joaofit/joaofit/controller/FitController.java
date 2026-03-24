@@ -1,5 +1,6 @@
 package com.joaofit.joaofit.controller;
 
+import com.joaofit.joaofit.dto.Session;
 import com.joaofit.joaofit.service.FitService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,10 @@ public class FitController {
     @PostMapping("/upload")
     public List<String> uploadFit(@RequestParam("file")MultipartFile file){
         return fitService.lerArquivoFit(file);
+    }
+    @PostMapping("/upload/session")
+    public List<Session> uploadFit2(@RequestParam("file")MultipartFile file){
+        return fitService.lerSessionArquivoFit(file);
     }
 
 }
