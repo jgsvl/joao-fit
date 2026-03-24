@@ -1,9 +1,7 @@
 package com.joaofit.joaofit.service;
 
-import com.garmin.fit.Decode;
-import com.garmin.fit.MesgBroadcaster;
-import com.garmin.fit.RecordMesgListener;
-import com.garmin.fit.SessionMesgListener;
+import com.garmin.fit.*;
+import com.joaofit.joaofit.dto.DeviceInfo;
 import com.joaofit.joaofit.dto.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,7 +28,7 @@ public class FitService {
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
         // Listener para mensagens de "Session"
         mesgBroadcaster.addListener((SessionMesgListener) mesg -> {
-                    Session session = new Session(
+            Session session = new Session(
                     mesg.getStartTime(),
                     mesg.getSport(),
                     mesg.getSubSport(),
@@ -38,12 +36,39 @@ public class FitService {
                     mesg.getAvgSpeed(),
                     mesg.getAvgHeartRate(),
                     mesg.getAvgCadence());
-                    sessions.add(session);
+            sessions.add(session);
         });
 
         mesgBroadcaster.run(is);
         return sessions;
 
+    }
+
+    public List<DeviceInfo> getDeviceInfos(MultipartFile file) {
+        InputStream is;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<DeviceInfo> deviceInfos = new ArrayList<>();
+        // Decode verifica a integridade do arquivo .fit
+        Decode decoder = new Decode();
+        MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
+        // Listener para mensagens de "Session"
+        mesgBroadcaster.addListener((DeviceInfoMesgListener) mesg -> {
+            DeviceInfo deviceInfo = new DeviceInfo(
+                    mesg.getDeviceType(),
+                    mesg.getManufacturer(),
+                    mesg.getName(),
+                    mesg.getAntplusDeviceType(),
+                    mesg.getBleDeviceType(),
+                    mesg.getDescriptor());
+            deviceInfos.add(deviceInfo);
+        });
+        mesgBroadcaster.run(is);
+        return deviceInfos;
     }
 
     public List<String> lerArquivoFit(MultipartFile file) {
