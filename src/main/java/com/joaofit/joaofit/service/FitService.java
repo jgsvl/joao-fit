@@ -1,7 +1,9 @@
 package com.joaofit.joaofit.service;
 
 import com.garmin.fit.*;
+import com.joaofit.joaofit.dto.Activity;
 import com.joaofit.joaofit.dto.DeviceInfo;
+import com.joaofit.joaofit.dto.FileId;
 import com.joaofit.joaofit.dto.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,18 +16,55 @@ import java.util.List;
 @Service
 public class FitService {
 
-    public List<Session> getSessions(MultipartFile file) {
+    public Activity getActivity(MultipartFile file){
+        return new Activity(getFileIds(file), getDeviceInfos(file), getSessions(file));
+    }
+
+    private List<FileId> getFileIds(MultipartFile file){
         InputStream is;
         try {
             is = file.getInputStream();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        List<Session> sessions = new ArrayList<>();
         // Decode verifica a integridade do arquivo .fit
         Decode decoder = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
+
+        List<FileId> fileIds = new ArrayList<>();
+
+
+        // Listener para mensagens de "FileId"
+        mesgBroadcaster.addListener((FileIdMesgListener) mesg -> {
+            FileId fileId = new FileId(
+                    mesg.getManufacturer(),
+                    mesg.getName(),
+                    mesg.getProduct(),
+                    mesg.getProductName(),
+                    mesg.getTimeCreated(),
+                    mesg.getSerialNumber(),
+                    mesg.getFaveroProduct());
+            fileIds.add(fileId);
+        });
+
+        mesgBroadcaster.run(is);
+        return fileIds;
+
+    }
+
+    private List<Session> getSessions(MultipartFile file) {
+        InputStream is;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // Decode verifica a integridade do arquivo .fit
+        Decode decoder = new Decode();
+        MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
+
+        List<Session> sessions = new ArrayList<>();
+
         // Listener para mensagens de "Session"
         mesgBroadcaster.addListener((SessionMesgListener) mesg -> {
             Session session = new Session(
@@ -44,7 +83,7 @@ public class FitService {
 
     }
 
-    public List<DeviceInfo> getDeviceInfos(MultipartFile file) {
+    private List<DeviceInfo> getDeviceInfos(MultipartFile file) {
         InputStream is;
         try {
             is = file.getInputStream();
@@ -56,7 +95,7 @@ public class FitService {
         // Decode verifica a integridade do arquivo .fit
         Decode decoder = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decoder);
-        // Listener para mensagens de "Session"
+        // Listener para mensagens de "DeviceInfo"
         mesgBroadcaster.addListener((DeviceInfoMesgListener) mesg -> {
             DeviceInfo deviceInfo = new DeviceInfo(
                     mesg.getDeviceType(),
@@ -71,7 +110,8 @@ public class FitService {
         return deviceInfos;
     }
 
-    public List<String> lerArquivoFit(MultipartFile file) {
+    // método atualmente em desuso. fuutramente será refatorado e record será um dto
+    private List<String> lerArquivoFit(MultipartFile file) {
         List<String> registros = new ArrayList<>();
         InputStream is;
         try {

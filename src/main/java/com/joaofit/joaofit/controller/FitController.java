@@ -1,5 +1,6 @@
 package com.joaofit.joaofit.controller;
 
+import com.joaofit.joaofit.dto.Activity;
 import com.joaofit.joaofit.dto.DeviceInfo;
 import com.joaofit.joaofit.dto.Session;
 import com.joaofit.joaofit.service.FitService;
@@ -22,16 +23,8 @@ public class FitController {
     }
 
     @PostMapping("/upload")
-    public List<String> uploadFit(@RequestParam("file")MultipartFile file){
-        return fitService.lerArquivoFit(file);
-    }
-    @PostMapping("/upload/session")
-    public List<Session> uploadFit2(@RequestParam("file")MultipartFile file){
-        return fitService.getSessions(file);
-    }
-    @PostMapping("/upload/device-info")
-    public List<DeviceInfo> uploadFit3(@RequestParam("file")MultipartFile file){
-        return fitService.getDeviceInfos(file);
+    public Activity uploadFit(@RequestParam("file")MultipartFile file){
+        return fitService.getActivity(file);
     }
 
 }
